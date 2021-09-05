@@ -83,6 +83,7 @@ contract AlgoLight is ERC721, IERC2981, Ownable {
         uint256 newId = availableIds[swapIndex];
         uint256 lastValue = availableIds[availableIds.length - 1];
         availableIds[swapIndex] = lastValue;
+        availableIds.length -= 1;
 
         _mint(to, newId);
     }
