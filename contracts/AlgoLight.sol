@@ -8,8 +8,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 
-import "hardhat/console.sol";
-
 /// @author Iain Nash @isiain
 /// @dev Contract for Algo Light Project by @jawn
 /// @custom:warning UNAUDITED: Use at own risk
@@ -17,7 +15,7 @@ contract AlgoLight is ERC721, IERC2981, Ownable {
     /// Base URI for metadata (immutable)
     string private metadataBase;
     /// Available IDS list
-    uint256[] private availableIds;
+    uint16[] private availableIds;
     /// List of approved minters (can be updated by admin)
     address[] private approvedMinters;
     /// Entropy base
@@ -32,15 +30,22 @@ contract AlgoLight is ERC721, IERC2981, Ownable {
         string memory name,
         string memory symbol,
         string memory _metadataBase,
-        uint256 _maxAvailableId
+        uint16 _maxAvailableId
     ) ERC721(name, symbol) {
         metadataBase = _metadataBase;
-        for (uint i = 0; i < _maxAvailableId; i++) {
-            availableIds.push(i);
-        }
-        entropyBase = keccak256(abi.encodePacked(block.timestamp, gasleft(), tx.gasprice, metadataBase));
+        // Create array of avilable ids (not initialized as a gas optimization)
+        availableIds = new uint16[](_maxAvailableId);
+        // Init entropy
+        _updateEntropy(); 
     }
 
+    /// @dev Updates entropy value hash
+    function _updateEntropy() internal {
+        entropyBase = keccak256(abi.encodePacked(msg.sender, block.timestamp, gasleft(), tx.gasprice, metadataBase));
+    }
+
+    /// @dev Returns tokenURI for given token that exists
+    /// @param tokenId id of token to retrieve metadata for
     function tokenURI(uint256 tokenId)
         public
         view
@@ -52,10 +57,13 @@ contract AlgoLight is ERC721, IERC2981, Ownable {
         return string(abi.encodePacked(metadataBase, Strings.toString(tokenId), ".json"));
     }
 
+    /// @dev Admin owner-only function to update the list of approved minters
+    /// @param _approvedMinters list of addresses that are approved minters
     function setApprovedMinters(address[] memory _approvedMinters) public onlyOwner {
         approvedMinters = _approvedMinters;
     }
 
+    /// @dev Modifier to only allow approved minter to mint pieces
     modifier onlyApprovedMinter() {
         if (isApprovedMinter(msg.sender)) {
             _;
@@ -64,6 +72,8 @@ contract AlgoLight is ERC721, IERC2981, Ownable {
         }
     }
 
+    /// @dev Returns if given address is an approved minter or owner
+    /// @param minter address of potential minter to test
     function isApprovedMinter(address minter) public view returns (bool) {
         if (minter == owner()) {
             return true;
@@ -76,18 +86,37 @@ contract AlgoLight is ERC721, IERC2981, Ownable {
         return false;
     }
 
+    /// @dev Authenticated mint function that mints a random available NFT
+    /// @param to Address to mint NFT to
     function mint(address to) public onlyApprovedMinter {
         require(availableIds.length > 0, "Sold out");
-        entropyBase = keccak256(abi.encodePacked(gasleft(), tx.gasprice, block.timestamp, entropyBase));
+        // This updates the entropy base for minting. Fairly simple but should work for this use case.
+        _updateEntropy();
+        // Get index of ID to mint from available ids
         uint256 swapIndex = uint256(entropyBase) % availableIds.length;
+        // Load in new id
         uint256 newId = availableIds[swapIndex];
-        uint256 lastValue = availableIds[availableIds.length - 1];
-        availableIds[swapIndex] = lastValue;
-        availableIds.length -= 1;
+        // If unset, assume equals index
+        if (newId == 0) {
+            newId = swapIndex;
+        }
+        uint16 lastIndex = uint16(availableIds.length - 1);
+        uint16 lastId = availableIds[lastIndex];
+        if (lastId == 0) {
+            lastId = lastIndex;
+        }
+        // Set last value as swapped index
+        availableIds[swapIndex] = lastId;
+        // Remove potential value that was minted
+        availableIds.pop();
 
-        _mint(to, newId);
+        // Mint 
+        _mint(owner(), newId);
+        // Transfer (keeps ownership information intact)
+        _transfer(owner(), to, newId);
     }
 
+    /// @dev Returns 15% royalty to DAO
     function royaltyInfo(
         uint256,
         uint256 _salePrice
