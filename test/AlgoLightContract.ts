@@ -12,10 +12,7 @@ describe("AlgoLight", () => {
     let algoLightInstance: AlgoLight;
     beforeEach(async () => {
       const { AlgoLight } = await deployments.fixture(["AlgoLight"]);
-      algoLightInstance = (await ethers.getContractAt(
-        "AlgoLight",
-        AlgoLight.address
-      )) as AlgoLight;
+      algoLightInstance = AlgoLightFactory.connect(AlgoLight.address, signer);
 
       signer = (await ethers.getSigners())[0];
       signerAddress = await signer.getAddress();

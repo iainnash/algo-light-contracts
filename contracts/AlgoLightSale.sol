@@ -4,7 +4,10 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
+
+import "hardhat/console.sol";
 
 interface IMintable {
     function mint(address to) external;
@@ -12,10 +15,10 @@ interface IMintable {
 
 /// @author Iain Nash @isiain
 /// @dev asdf
-contract AlgoLightSale is Ownable {
-    /// Public sale amount
+contract AlgoLightSale is Ownable, ReentrancyGuard {
+    /// Public sale amount (0.1 ETH)
     uint256 private constant PUBLIC_SALE_AMOUNT = 0.1 * 10**18;
-    /// Private sale amount in tokens
+    /// Private sale amount in tokens (1 Token)
     uint256 private constant PRIVATE_SALE_AMOUNT = 1 * 10**18;
 
     /// Mintable instance
@@ -38,11 +41,18 @@ contract AlgoLightSale is Ownable {
     }
 
     /// @dev Public purchase token, limited by number sold public, requires ETH value
-    function purchase() public payable {
-        require(numberPublicSale < numberSoldPublic, "No sale");
-        require(msg.value != PUBLIC_SALE_AMOUNT, "Too low");
+    function purchase() public payable nonReentrant {
+        require(numberSoldPublic < numberPublicSale, "No sale");
+        require(msg.value >= PUBLIC_SALE_AMOUNT, "Too low");
         mintable.mint(msg.sender);
         numberSoldPublic += 1;
+    }
+
+    function withdrawEth() public {
+        (bool sent, ) = owner().call{value: address(this).balance, gas: 40_000}(
+            ""
+        );
+        require(sent, "Failed to send Ether");
     }
 
     /// @dev Returns sales info
@@ -66,13 +76,14 @@ contract AlgoLightSale is Ownable {
     }
 
     /// @dev Purchase with token private sales fn
-    /// Requires: 1. token amount to transfer, 
+    /// Requires: 1. token amount to transfer,
     function purchaseWithToken() public payable {
-        require(numberPrivateSale < numberSoldPrivate, "No sale");
+        require(numberSoldPrivate < numberPrivateSale, "No sale");
+        // Attempt to burn tokens for mint
         try
             privateSaleToken.transferFrom(
                 msg.sender,
-                owner(),
+                address(this),
                 PRIVATE_SALE_AMOUNT
             )
         returns (bool success) {
@@ -80,8 +91,26 @@ contract AlgoLightSale is Ownable {
             numberSoldPrivate += 1;
             mintable.mint(msg.sender);
         } catch {
-            revert("Cannot transfer token");
+            revert("Cannot transfer");
         }
+    }
+
+    /// @dev Withdraw tokens from mints based on your % ownership of the tokens from the sale
+    /// You need to be holding master fractional tokens to withdraw
+    function withdrawMasterTokens() public {
+        uint256 masterBalance = privateSaleToken.totalSupply();
+        uint256 vaultBalance = privateSaleToken.balanceOf(address(this));
+        uint256 senderBalance = privateSaleToken.balanceOf(msg.sender);
+        console.log("vaultBalance");
+        console.log(vaultBalance);
+        console.log("masterBalance");
+        console.log(masterBalance);
+        console.log("senderBalance");
+        console.log(senderBalance);
+        uint256 tokensOwedSender = ((vaultBalance * senderBalance) /
+            (masterBalance - vaultBalance));
+        require(tokensOwedSender > 0, "Sender tokens needed");
+        privateSaleToken.transfer(msg.sender, tokensOwedSender);
     }
 
     /// @dev Set number of NFTs that can be purchased

@@ -5,8 +5,8 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
   await deploy("AlgoLightSale", {
     from: deployer,
     args: [
-      deployments.get("AlgoLight").address,
-      deployments.get("TestToken").address,
+      (await deployments.get("AlgoLight")).address,
+      (await deployments.get("TestToken")).address,
     ],
     log: true,
   });

@@ -3,7 +3,14 @@ import "@nomiclabs/hardhat-ethers";
 import { ethers, deployments } from "hardhat";
 
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { AlgoLight, AlgoLightFactory, AlgoLightSale, TestToken } from "../typechain";
+import {
+  AlgoLight,
+  AlgoLightFactory,
+  AlgoLightSale,
+  AlgoLightSaleFactory,
+  TestToken,
+  TestTokenFactory,
+} from "../typechain";
 
 describe("AlgoLight", () => {
   describe("with a serial", () => {
@@ -13,85 +20,83 @@ describe("AlgoLight", () => {
     let algoLightSaleInstance: AlgoLightSale;
     let testTokenInstance: TestToken;
     beforeEach(async () => {
-      const { AlgoLight, AlgoLightSale, TestToken } = await deployments.fixture(["TestToken", "AlgoLight", 'AlgoLightSale']);
-      algoLightInstance = (await ethers.getContractAt(
-        "AlgoLight",
-        AlgoLight.address
-      )) as AlgoLight;
-      algoLightSaleInstance = (await ethers.getContractAt(
-        "AlgoLightSale",
-        AlgoLightSale.address
-      )) as AlgoLightSale;
-      testTokenInstance = (await ethers.getContractAt(
-        'TestToken',
-        TestToken.address,
-      )) as TestToken;
-
+      const { AlgoLight, AlgoLightSale, TestToken } = await deployments.fixture(
+        ["TestToken", "AlgoLight", "AlgoLightSale"]
+      );
       signer = (await ethers.getSigners())[0];
       signerAddress = await signer.getAddress();
+
+      algoLightInstance = AlgoLightFactory.connect(AlgoLight.address, signer);
+      algoLightSaleInstance = AlgoLightSaleFactory.connect(
+        AlgoLightSale.address,
+        signer
+      );
+      testTokenInstance = TestTokenFactory.connect(TestToken.address, signer);
     });
 
-    it("doesnt sell ", async () => {
-      const tx = await algoLightInstance.mint(signerAddress);
-      const receipt = await tx.wait();
-      const transfer = receipt.events?.find((x) => x.event === "Transfer");
-      // @ts-ignore
-      const tokenId = transfer?.args[2];
-      console.log("minted token ", tokenId.toNumber());
-      expect(await algoLightInstance.ownerOf(tokenId)).to.be.equal(
-        signerAddress
-      );
+    it("sells for ETH", async () => {
+      await algoLightInstance.setApprovedMinters([
+        algoLightSaleInstance.address,
+      ]);
+      await algoLightSaleInstance.setSaleNumbers(10, 10);
+      await algoLightSaleInstance.purchase({
+        value: ethers.utils.parseEther("0.1"),
+      });
     });
-    it("stops after mints are complete", async () => {
-      for (let i = 0; i < 10; i++) {
-        const tx = await algoLightInstance.mint(signerAddress);
-        const receipt = await tx.wait();
-        const transfer = receipt.events?.find((x) => x.event === "Transfer");
-        // @ts-ignore
-        const tokenId = transfer?.args[2];
-        console.log("minted token ", tokenId.toNumber());
-        expect(await algoLightInstance.ownerOf(tokenId)).to.be.equal(
-          signerAddress
-        );
-      }
-      expect(algoLightInstance.mint(signerAddress)).to.be.revertedWith(
-        "Sold out"
+    it("sells for tokens", async () => {
+      await algoLightInstance.setApprovedMinters([
+        algoLightSaleInstance.address,
+      ]);
+      await algoLightSaleInstance.setSaleNumbers(10, 10);
+      expect((await testTokenInstance.balanceOf(signerAddress)).gt("0")).to.be
+        .true;
+      await testTokenInstance.approve(
+        algoLightSaleInstance.address,
+        ethers.utils.parseEther("10")
       );
+      await algoLightSaleInstance.purchaseWithToken();
     });
-    it("only mints from approved accounts", async () => {
-      const [_, signer1] = await ethers.getSigners();
+    it("allows user withdraw of sales tokens", async () => {
+      const [_, signer1, signer2] = await ethers.getSigners();
 
-      expect(
-        algoLightInstance.connect(signer1).mint(await signer1.getAddress())
-      ).to.be.revertedWith("Not approved");
-    });
-  });
-  describe("with a full set", () => {
-    it("mints a full set", async () => {
-      const signerAddress = await (await ethers.getSigners())[0].getAddress();
-      const algoLightFactory = (await ethers.getContractFactory(
-        "AlgoLight"
-      )) as AlgoLightFactory;
-      const algoLightInstance = await algoLightFactory.deploy(
-        "Algo-Light Full",
-        "ALIGHTFULL",
-        "https://bar.com/co",
-        2400
+      await algoLightInstance.setApprovedMinters([
+        algoLightSaleInstance.address,
+      ]);
+      await algoLightSaleInstance.setSaleNumbers(10, 10);
+      expect((await testTokenInstance.balanceOf(signerAddress)).gt("0")).to.be
+        .true;
+      console.log("transferring");
+      await testTokenInstance.transfer(
+        await signer1.getAddress(),
+        ethers.utils.parseEther("10")
       );
-      for (let i = 0; i < 2400; i++) {
-        const tx = await algoLightInstance.mint(signerAddress);
-        const receipt = await tx.wait();
-        const transfer = receipt.events?.find((x) => x.event === "Transfer");
-        // @ts-ignore
-        const tokenId = transfer?.args[2];
-        console.log("minted token ", tokenId.toNumber());
-        expect(await algoLightInstance.ownerOf(tokenId)).to.be.equal(
-          signerAddress
+      await testTokenInstance.transfer(
+        await signer2.getAddress(),
+        ethers.utils.parseEther("100")
+      );
+      await testTokenInstance.approve(
+        algoLightSaleInstance.address,
+        ethers.utils.parseEther("10")
+      );
+      console.log("transfers doen");
+      expect(await algoLightSaleInstance.purchaseWithToken())
+        .to.emit("TestToken", "Transfer")
+        .withArgs(
+          signerAddress,
+          ethers.constants.AddressZero,
+          ethers.utils.parseEther("1")
         );
-      }
-      expect(algoLightInstance.mint(signerAddress)).to.be.revertedWith(
-        "Sold out"
+      const startAmount = await testTokenInstance.balanceOf(
+        await signer1.getAddress()
       );
+      console.log(startAmount.toString());
+
+      await algoLightSaleInstance.connect(signer1).withdrawMasterTokens();
+      // expect(
+      //   (await testTokenInstance.balanceOf(await signer1.getAddress()))
+      //     .sub(startAmount)
+      //     .gt("0")
+      // ).to.be.true;
     });
   });
 });

@@ -30,6 +30,8 @@ interface AlgoLightSaleInterface extends ethers.utils.Interface {
     "saleInfo()": FunctionFragment;
     "setSaleNumbers(uint256,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
+    "withdrawEth()": FunctionFragment;
+    "withdrawMasterTokens()": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
@@ -51,6 +53,14 @@ interface AlgoLightSaleInterface extends ethers.utils.Interface {
     functionFragment: "transferOwnership",
     values: [string]
   ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawEth",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawMasterTokens",
+    values?: undefined
+  ): string;
 
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "purchase", data: BytesLike): Result;
@@ -69,6 +79,14 @@ interface AlgoLightSaleInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawEth",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawMasterTokens",
     data: BytesLike
   ): Result;
 
@@ -152,6 +170,16 @@ export class AlgoLightSale extends Contract {
       newOwner: string,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
+
+    withdrawEth(overrides?: Overrides): Promise<ContractTransaction>;
+
+    "withdrawEth()"(overrides?: Overrides): Promise<ContractTransaction>;
+
+    withdrawMasterTokens(overrides?: Overrides): Promise<ContractTransaction>;
+
+    "withdrawMasterTokens()"(
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
   };
 
   owner(overrides?: CallOverrides): Promise<string>;
@@ -208,6 +236,14 @@ export class AlgoLightSale extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
+  withdrawEth(overrides?: Overrides): Promise<ContractTransaction>;
+
+  "withdrawEth()"(overrides?: Overrides): Promise<ContractTransaction>;
+
+  withdrawMasterTokens(overrides?: Overrides): Promise<ContractTransaction>;
+
+  "withdrawMasterTokens()"(overrides?: Overrides): Promise<ContractTransaction>;
+
   callStatic: {
     owner(overrides?: CallOverrides): Promise<string>;
 
@@ -260,6 +296,14 @@ export class AlgoLightSale extends Contract {
       newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    withdrawEth(overrides?: CallOverrides): Promise<void>;
+
+    "withdrawEth()"(overrides?: CallOverrides): Promise<void>;
+
+    withdrawMasterTokens(overrides?: CallOverrides): Promise<void>;
+
+    "withdrawMasterTokens()"(overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -311,6 +355,14 @@ export class AlgoLightSale extends Contract {
       newOwner: string,
       overrides?: Overrides
     ): Promise<BigNumber>;
+
+    withdrawEth(overrides?: Overrides): Promise<BigNumber>;
+
+    "withdrawEth()"(overrides?: Overrides): Promise<BigNumber>;
+
+    withdrawMasterTokens(overrides?: Overrides): Promise<BigNumber>;
+
+    "withdrawMasterTokens()"(overrides?: Overrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -357,6 +409,16 @@ export class AlgoLightSale extends Contract {
 
     "transferOwnership(address)"(
       newOwner: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    withdrawEth(overrides?: Overrides): Promise<PopulatedTransaction>;
+
+    "withdrawEth()"(overrides?: Overrides): Promise<PopulatedTransaction>;
+
+    withdrawMasterTokens(overrides?: Overrides): Promise<PopulatedTransaction>;
+
+    "withdrawMasterTokens()"(
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
   };

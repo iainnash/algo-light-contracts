@@ -110,10 +110,8 @@ contract AlgoLight is ERC721, IERC2981, Ownable {
         // Remove potential value that was minted
         availableIds.pop();
 
-        // Mint 
-        _mint(owner(), newId);
-        // Transfer (keeps ownership information intact)
-        _transfer(owner(), to, newId);
+        // Mint token
+        _mint(to, newId);
     }
 
     /// @dev Returns 15% royalty to DAO
@@ -126,8 +124,8 @@ contract AlgoLight is ERC721, IERC2981, Ownable {
     ) {
         return (
             owner(),
-            // 150 bps = 15% royalty
-            (_salePrice * 150) / 10_000
+            // 50 bps = 5% royalty
+            (_salePrice * 50) / 10_000
         );
     }
 
