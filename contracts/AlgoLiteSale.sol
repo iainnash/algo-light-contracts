@@ -19,9 +19,9 @@ contract AlgoLiteSale is Ownable, ReentrancyGuard {
     uint256 private constant PRIVATE_SALE_AMOUNT = 1 * 10**18;
 
     /// Mintable instance
-    IMintable mintable;
+    IMintable private immutable mintable;
     /// Private sale token
-    IERC20 privateSaleToken;
+    IERC20 private immutable privateSaleToken;
 
     uint256 private numberPublicSale;
     uint256 private numberSoldPublic;
