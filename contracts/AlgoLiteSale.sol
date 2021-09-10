@@ -6,12 +6,8 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
+import "./IMintable.sol";
 
-import "hardhat/console.sol";
-
-interface IMintable {
-    function mint(address to) external;
-}
 
 /// @author Iain Nash @isiain
 /// @dev Minting Contract for Algo Lite Project by @jawn
@@ -102,12 +98,6 @@ contract AlgoLiteSale is Ownable, ReentrancyGuard {
         uint256 masterBalance = privateSaleToken.totalSupply();
         uint256 vaultBalance = privateSaleToken.balanceOf(address(this));
         uint256 senderBalance = privateSaleToken.balanceOf(msg.sender);
-        console.log("vaultBalance");
-        console.log(vaultBalance);
-        console.log("masterBalance");
-        console.log(masterBalance);
-        console.log("senderBalance");
-        console.log(senderBalance);
         uint256 tokensOwedSender = ((vaultBalance * senderBalance) /
             (masterBalance - vaultBalance));
         require(tokensOwedSender > 0, "Sender tokens needed");

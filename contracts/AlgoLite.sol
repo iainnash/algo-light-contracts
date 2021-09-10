@@ -2,16 +2,17 @@
 
 pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IERC2981, IERC165} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import {IMintable} from "./IMintable.sol";
 
 /// @author Iain Nash @isiain
 /// @dev Contract for Algo Lite Project by @jawn
 /// @custom:warning UNAUDITED: Use at own risk
-contract AlgoLite is ERC721, IERC2981, Ownable {
+contract AlgoLite is ERC721, IERC2981, Ownable, IMintable {
     /// Base URI for metadata (immutable)
     string private metadataBase;
     /// Available IDS list
@@ -36,12 +37,20 @@ contract AlgoLite is ERC721, IERC2981, Ownable {
         // Create array of avilable ids (not initialized as a gas optimization)
         availableIds = new uint16[](_maxAvailableId);
         // Init entropy
-        _updateEntropy(); 
+        _updateEntropy();
     }
 
     /// @dev Updates entropy value hash
     function _updateEntropy() internal {
-        entropyBase = keccak256(abi.encodePacked(msg.sender, block.timestamp, gasleft(), tx.gasprice, metadataBase));
+        entropyBase = keccak256(
+            abi.encodePacked(
+                msg.sender,
+                block.timestamp,
+                gasleft(),
+                tx.gasprice,
+                metadataBase
+            )
+        );
     }
 
     /// @dev Returns tokenURI for given token that exists
@@ -54,12 +63,22 @@ contract AlgoLite is ERC721, IERC2981, Ownable {
     {
         require(_exists(tokenId), "NO TOKEN");
 
-        return string(abi.encodePacked(metadataBase, Strings.toString(tokenId), ".json"));
+        return
+            string(
+                abi.encodePacked(
+                    metadataBase,
+                    Strings.toString(tokenId),
+                    ".json"
+                )
+            );
     }
 
     /// @dev Admin owner-only function to update the list of approved minters
     /// @param _approvedMinters list of addresses that are approved minters
-    function setApprovedMinters(address[] memory _approvedMinters) public onlyOwner {
+    function setApprovedMinters(address[] memory _approvedMinters)
+        public
+        onlyOwner
+    {
         approvedMinters = _approvedMinters;
     }
 
@@ -78,7 +97,7 @@ contract AlgoLite is ERC721, IERC2981, Ownable {
         if (minter == owner()) {
             return true;
         }
-        for (uint i = 0; i < approvedMinters.length; i++) {
+        for (uint256 i = 0; i < approvedMinters.length; i++) {
             if (minter == approvedMinters[i]) {
                 return true;
             }
@@ -88,7 +107,7 @@ contract AlgoLite is ERC721, IERC2981, Ownable {
 
     /// @dev Authenticated mint function that mints a random available NFT
     /// @param to Address to mint NFT to
-    function mint(address to) public onlyApprovedMinter {
+    function mint(address to) public onlyApprovedMinter override {
         require(availableIds.length > 0, "Sold out");
         // This updates the entropy base for minting. Fairly simple but should work for this use case.
         _updateEntropy();
@@ -114,14 +133,13 @@ contract AlgoLite is ERC721, IERC2981, Ownable {
         _safeMint(to, newId);
     }
 
-    /// @dev Returns 15% royalty to DAO
-    function royaltyInfo(
-        uint256,
-        uint256 _salePrice
-    ) override external view returns (
-        address receiver,
-        uint256 royaltyAmount
-    ) {
+    /// @dev Returns 5% royalty to owner
+    function royaltyInfo(uint256, uint256 _salePrice)
+        external
+        view
+        override
+        returns (address receiver, uint256 royaltyAmount)
+    {
         return (
             owner(),
             // 50 bps = 5% royalty
@@ -136,6 +154,7 @@ contract AlgoLite is ERC721, IERC2981, Ownable {
         returns (bool)
     {
         return
+            type(IMintable).interfaceId == interfaceId || 
             type(IERC2981).interfaceId == interfaceId ||
             ERC721.supportsInterface(interfaceId);
     }
