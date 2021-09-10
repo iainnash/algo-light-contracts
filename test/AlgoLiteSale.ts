@@ -63,15 +63,15 @@ describe("AlgoLiteSale", () => {
         .true;
       await testTokenInstance.transfer(
         await signer1.getAddress(),
-        ethers.utils.parseEther("10")
+        ethers.utils.parseEther("400")
       );
       await testTokenInstance.transfer(
         await signer2.getAddress(),
-        ethers.utils.parseEther("100")
+        ethers.utils.parseEther("400")
       );
       await testTokenInstance.approve(
         algoLiteSaleInstance.address,
-        ethers.utils.parseEther("10")
+        ethers.utils.parseEther("10000")
       );
       await algoLiteSaleInstance.purchaseWithToken();
       const startAmount = await testTokenInstance.balanceOf(
@@ -79,11 +79,16 @@ describe("AlgoLiteSale", () => {
       );
 
       await algoLiteSaleInstance.connect(signer1).withdrawMasterTokens();
-      expect(
-        (await testTokenInstance.balanceOf(await signer1.getAddress()))
-          .sub(startAmount)
-          .toString()
-      ).to.be.equal("10010010010010010");
+      const endAmount = await testTokenInstance.balanceOf(
+        await signer1.getAddress()
+      );
+      console.log({
+        startAmount: ethers.utils.formatEther(startAmount),
+        endAmount: ethers.utils.formatEther(endAmount),
+      });
+      expect(endAmount.sub(startAmount).toString()).to.be.equal(
+        "400400400400400400"
+      );
     });
   });
 });
