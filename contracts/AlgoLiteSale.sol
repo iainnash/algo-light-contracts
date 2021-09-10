@@ -14,8 +14,9 @@ interface IMintable {
 }
 
 /// @author Iain Nash @isiain
-/// @dev asdf
-contract AlgoLightSale is Ownable, ReentrancyGuard {
+/// @dev Minting Contract for Algo Lite Project by @jawn
+/// @custom:warning UNAUDITED: Use at own risk
+contract AlgoLiteSale is Ownable, ReentrancyGuard {
     /// Public sale amount (0.1 ETH)
     uint256 private constant PUBLIC_SALE_AMOUNT = 0.1 * 10**18;
     /// Private sale amount in tokens (1 Token)

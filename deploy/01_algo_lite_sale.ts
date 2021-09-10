@@ -2,14 +2,14 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  await deploy("AlgoLightSale", {
+  await deploy("AlgoLiteSale", {
     from: deployer,
     args: [
-      (await deployments.get("AlgoLight")).address,
+      (await deployments.get("AlgoLite")).address,
       (await deployments.get("TestToken")).address,
     ],
     log: true,
   });
 };
-module.exports.tags = ["AlgoLightSale"];
-module.exports.dependencies = ["TestToken", "AlgoLight"];
+module.exports.tags = ["AlgoLiteSale"];
+module.exports.dependencies = ["TestToken", "AlgoLite"];

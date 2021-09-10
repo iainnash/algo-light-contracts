@@ -9,9 +9,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 
 /// @author Iain Nash @isiain
-/// @dev Contract for Algo Light Project by @jawn
+/// @dev Contract for Algo Lite Project by @jawn
 /// @custom:warning UNAUDITED: Use at own risk
-contract AlgoLight is ERC721, IERC2981, Ownable {
+contract AlgoLite is ERC721, IERC2981, Ownable {
     /// Base URI for metadata (immutable)
     string private metadataBase;
     /// Available IDS list
@@ -111,7 +111,7 @@ contract AlgoLight is ERC721, IERC2981, Ownable {
         availableIds.pop();
 
         // Mint token
-        _mint(to, newId);
+        _safeMint(to, newId);
     }
 
     /// @dev Returns 15% royalty to DAO
