@@ -74,7 +74,7 @@ contract AlgoLiteSale is Ownable, ReentrancyGuard {
 
     /// @dev Purchase with token private sales fn
     /// Requires: 1. token amount to transfer,
-    function purchaseWithToken() public payable {
+    function purchaseWithToken() public nonReentrant {
         require(numberSoldPrivate < numberPrivateSale, "No sale");
         // Attempt to burn tokens for mint
         try
