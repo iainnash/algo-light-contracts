@@ -4,27 +4,26 @@ import "hardhat-typechain";
 import "hardhat-deploy";
 import "@nomiclabs/hardhat-etherscan";
 import { HardhatUserConfig } from "hardhat/config";
-import NETWORKS_CONFIG from './networks.private.json';
-import apikeys from './apikeys.private.json';
+import networks from "./networks";
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
 const config: HardhatUserConfig = {
-  defaultNetwork: 'hardhat',
+  defaultNetwork: "hardhat",
   etherscan: {
-    apiKey: apikeys.etherscan,
+    apiKey: process.env.API_KEY_ETHERSCAN,
   },
   gasReporter: {
-    currency: 'USD',
-    gasPrice: 20, 
+    currency: "USD",
+    gasPrice: 20,
   },
   networks: {
     hardhat: {
       // fix metamask
       chainId: 1337,
     },
-    ...NETWORKS_CONFIG,
+    ...networks,
   },
   namedAccounts: {
     deployer: 0,
@@ -41,9 +40,8 @@ const config: HardhatUserConfig = {
   },
   mocha: {
     // 2 min timeout
-    timeout: 1000*60*2,
-  }
+    timeout: 1000 * 60 * 2,
+  },
 };
 
 export default config;
-
