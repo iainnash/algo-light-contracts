@@ -1,5 +1,6 @@
 name: npm Test
-on: [push]
+on: push
+runs-on: ubuntu-latest
 jobs:
   run-test:
     steps:
