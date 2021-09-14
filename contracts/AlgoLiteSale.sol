@@ -94,7 +94,7 @@ contract AlgoLiteSale is Ownable, ReentrancyGuard {
 
     /// @dev Withdraw tokens from mints based on your % ownership of the tokens from the sale
     /// You need to be holding master fractional tokens to withdraw
-    function withdrawMasterTokens() public {
+    function withdrawMasterTokens() public nonReentrant {
         uint256 masterBalance = privateSaleToken.totalSupply();
         uint256 vaultBalance = privateSaleToken.balanceOf(address(this));
         uint256 senderBalance = privateSaleToken.balanceOf(msg.sender);
