@@ -123,13 +123,9 @@ export class AlgoLiteSale extends Contract {
 
     "purchase()"(overrides?: PayableOverrides): Promise<ContractTransaction>;
 
-    purchaseWithToken(
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
+    purchaseWithToken(overrides?: Overrides): Promise<ContractTransaction>;
 
-    "purchaseWithToken()"(
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
+    "purchaseWithToken()"(overrides?: Overrides): Promise<ContractTransaction>;
 
     renounceOwnership(overrides?: Overrides): Promise<ContractTransaction>;
 
@@ -190,11 +186,9 @@ export class AlgoLiteSale extends Contract {
 
   "purchase()"(overrides?: PayableOverrides): Promise<ContractTransaction>;
 
-  purchaseWithToken(overrides?: PayableOverrides): Promise<ContractTransaction>;
+  purchaseWithToken(overrides?: Overrides): Promise<ContractTransaction>;
 
-  "purchaseWithToken()"(
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
+  "purchaseWithToken()"(overrides?: Overrides): Promise<ContractTransaction>;
 
   renounceOwnership(overrides?: Overrides): Promise<ContractTransaction>;
 
@@ -322,9 +316,9 @@ export class AlgoLiteSale extends Contract {
 
     "purchase()"(overrides?: PayableOverrides): Promise<BigNumber>;
 
-    purchaseWithToken(overrides?: PayableOverrides): Promise<BigNumber>;
+    purchaseWithToken(overrides?: Overrides): Promise<BigNumber>;
 
-    "purchaseWithToken()"(overrides?: PayableOverrides): Promise<BigNumber>;
+    "purchaseWithToken()"(overrides?: Overrides): Promise<BigNumber>;
 
     renounceOwnership(overrides?: Overrides): Promise<BigNumber>;
 
@@ -374,13 +368,9 @@ export class AlgoLiteSale extends Contract {
 
     "purchase()"(overrides?: PayableOverrides): Promise<PopulatedTransaction>;
 
-    purchaseWithToken(
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
+    purchaseWithToken(overrides?: Overrides): Promise<PopulatedTransaction>;
 
-    "purchaseWithToken()"(
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
+    "purchaseWithToken()"(overrides?: Overrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(overrides?: Overrides): Promise<PopulatedTransaction>;
 
