@@ -10,15 +10,15 @@ import {IERC2981, IERC165} from "@openzeppelin/contracts/interfaces/IERC2981.sol
 import {IMintable} from "./IMintable.sol";
 
 /// @author Iain Nash @isiain
-/// @dev Contract for Algo Lite Project by @jawn
+/// @dev Contract for Algo Lite Project by @jawn +
 /// @custom:warning UNAUDITED: Use at own risk
 contract AlgoLite is ERC721, IERC2981, Ownable, IMintable {
     /// Base URI for metadata (immutable)
     string private metadataBase;
     /// Available IDS list
     uint16[] private availableIds;
-    /// List of approved minters (can be updated by admin)
-    address[] private approvedMinters;
+    /// Mapping of approved minters (can be updated by admin)
+    mapping(address => bool) private approvedMinters;
     /// Entropy base
     bytes32 entropyBase;
 
@@ -27,6 +27,7 @@ contract AlgoLite is ERC721, IERC2981, Ownable, IMintable {
     /// @param _metadataBase Base URL of metadata
     /// @param _maxAvailableId Max number that can be minted beyond 0
     /// @dev Sets up the serial contract with a name, symbol, and an initial allowed creator.
+    /// @dev Mints the genesis token to the deployer.
     constructor(
         string memory name,
         string memory symbol,
@@ -38,6 +39,8 @@ contract AlgoLite is ERC721, IERC2981, Ownable, IMintable {
         availableIds = new uint16[](_maxAvailableId);
         // Init entropy
         _updateEntropy();
+        // Mint genesis token
+        _mint(msg.sender, 0);
     }
 
     /// @dev Updates entropy value hash
@@ -46,6 +49,7 @@ contract AlgoLite is ERC721, IERC2981, Ownable, IMintable {
             abi.encodePacked(
                 msg.sender,
                 block.timestamp,
+                block.coinbase,
                 gasleft(),
                 tx.gasprice,
                 metadataBase
@@ -74,40 +78,27 @@ contract AlgoLite is ERC721, IERC2981, Ownable, IMintable {
     }
 
     /// @dev Admin owner-only function to update the list of approved minters
-    /// @param _approvedMinters list of addresses that are approved minters
-    function setApprovedMinters(address[] memory _approvedMinters)
+    /// @param minter list of addresses that are approved minters
+    /// @param isApproved if given minter is approved
+    function setIsApprovedMinter(address minter, bool isApproved)
         public
         onlyOwner
     {
-        approvedMinters = _approvedMinters;
+        approvedMinters[minter] = isApproved;
     }
 
     /// @dev Modifier to only allow approved minter to mint pieces
     modifier onlyApprovedMinter() {
-        if (isApprovedMinter(msg.sender)) {
-            _;
-        } else {
-            revert("Not approved");
-        }
-    }
-
-    /// @dev Returns if given address is an approved minter or owner
-    /// @param minter address of potential minter to test
-    function isApprovedMinter(address minter) public view returns (bool) {
-        if (minter == owner()) {
-            return true;
-        }
-        for (uint256 i = 0; i < approvedMinters.length; i++) {
-            if (minter == approvedMinters[i]) {
-                return true;
-            }
-        }
-        return false;
+        require(
+            approvedMinters[msg.sender] || owner() == msg.sender,
+            "not approved"
+        );
+        _;
     }
 
     /// @dev Authenticated mint function that mints a random available NFT
     /// @param to Address to mint NFT to
-    function mint(address to) public onlyApprovedMinter override {
+    function mint(address to) public override onlyApprovedMinter {
         require(availableIds.length > 0, "Sold out");
         // This updates the entropy base for minting. Fairly simple but should work for this use case.
         _updateEntropy();
@@ -129,8 +120,18 @@ contract AlgoLite is ERC721, IERC2981, Ownable, IMintable {
         // Remove potential value that was minted
         availableIds.pop();
 
-        // Mint token
-        _safeMint(to, newId);
+        // Mint token (1-indexed to allow for genesis token to be pre-minted)
+        _safeMint(to, newId + 1);
+    }
+
+    // Specify owner can be both from mintable (interface) and ownable (parent)
+    function owner()
+        public
+        view
+        override(Ownable, IMintable)
+        returns (address)
+    {
+        return super.owner();
     }
 
     /// @dev Returns 5% royalty to owner
@@ -154,7 +155,7 @@ contract AlgoLite is ERC721, IERC2981, Ownable, IMintable {
         returns (bool)
     {
         return
-            type(IMintable).interfaceId == interfaceId || 
+            type(IMintable).interfaceId == interfaceId ||
             type(IERC2981).interfaceId == interfaceId ||
             ERC721.supportsInterface(interfaceId);
     }

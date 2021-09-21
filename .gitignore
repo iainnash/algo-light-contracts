@@ -4,4 +4,4 @@ cache
 *.private.json
 ./networks.private.json
 .DS_Store
-typechain
+typechain/

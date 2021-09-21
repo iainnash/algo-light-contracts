@@ -9,17 +9,16 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface Ierc2981Interface extends ethers.utils.Interface {
+interface IERC2981Interface extends ethers.utils.Interface {
   functions: {
     "royaltyInfo(uint256,uint256)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
@@ -46,85 +45,73 @@ interface Ierc2981Interface extends ethers.utils.Interface {
   events: {};
 }
 
-export class Ierc2981 extends Contract {
+export class IERC2981 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
 
-  interface: Ierc2981Interface;
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
+
+  interface: IERC2981Interface;
 
   functions: {
     royaltyInfo(
       tokenId: BigNumberish,
       salePrice: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<{
-      receiver: string;
-      royaltyAmount: BigNumber;
-      0: string;
-      1: BigNumber;
-    }>;
-
-    "royaltyInfo(uint256,uint256)"(
-      tokenId: BigNumberish,
-      salePrice: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<{
-      receiver: string;
-      royaltyAmount: BigNumber;
-      0: string;
-      1: BigNumber;
-    }>;
+    ): Promise<
+      [string, BigNumber] & { receiver: string; royaltyAmount: BigNumber }
+    >;
 
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
-    ): Promise<{
-      0: boolean;
-    }>;
-
-    "supportsInterface(bytes4)"(
-      interfaceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<{
-      0: boolean;
-    }>;
+    ): Promise<[boolean]>;
   };
 
   royaltyInfo(
     tokenId: BigNumberish,
     salePrice: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<{
-    receiver: string;
-    royaltyAmount: BigNumber;
-    0: string;
-    1: BigNumber;
-  }>;
-
-  "royaltyInfo(uint256,uint256)"(
-    tokenId: BigNumberish,
-    salePrice: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<{
-    receiver: string;
-    royaltyAmount: BigNumber;
-    0: string;
-    1: BigNumber;
-  }>;
+  ): Promise<
+    [string, BigNumber] & { receiver: string; royaltyAmount: BigNumber }
+  >;
 
   supportsInterface(
-    interfaceId: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  "supportsInterface(bytes4)"(
     interfaceId: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
@@ -134,30 +121,11 @@ export class Ierc2981 extends Contract {
       tokenId: BigNumberish,
       salePrice: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<{
-      receiver: string;
-      royaltyAmount: BigNumber;
-      0: string;
-      1: BigNumber;
-    }>;
-
-    "royaltyInfo(uint256,uint256)"(
-      tokenId: BigNumberish,
-      salePrice: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<{
-      receiver: string;
-      royaltyAmount: BigNumber;
-      0: string;
-      1: BigNumber;
-    }>;
+    ): Promise<
+      [string, BigNumber] & { receiver: string; royaltyAmount: BigNumber }
+    >;
 
     supportsInterface(
-      interfaceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    "supportsInterface(bytes4)"(
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -172,18 +140,7 @@ export class Ierc2981 extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "royaltyInfo(uint256,uint256)"(
-      tokenId: BigNumberish,
-      salePrice: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     supportsInterface(
-      interfaceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "supportsInterface(bytes4)"(
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -196,18 +153,7 @@ export class Ierc2981 extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "royaltyInfo(uint256,uint256)"(
-      tokenId: BigNumberish,
-      salePrice: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     supportsInterface(
-      interfaceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "supportsInterface(bytes4)"(
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

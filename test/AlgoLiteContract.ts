@@ -3,7 +3,7 @@ import "@nomiclabs/hardhat-ethers";
 import { ethers, deployments } from "hardhat";
 
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { AlgoLite, AlgoLiteFactory } from "../typechain";
+import { AlgoLite, AlgoLite__factory } from "../typechain";
 
 describe("AlgoLite", () => {
   describe("with a serial", () => {
@@ -12,22 +12,38 @@ describe("AlgoLite", () => {
     let algoLiteInstance: AlgoLite;
     beforeEach(async () => {
       const { AlgoLite } = await deployments.fixture(["AlgoLite"]);
-      algoLiteInstance = AlgoLiteFactory.connect(AlgoLite.address, signer);
+      algoLiteInstance = await AlgoLite__factory.connect(
+        AlgoLite.address,
+        signer
+      );
 
       signer = (await ethers.getSigners())[0];
       signerAddress = await signer.getAddress();
     });
 
+    it("goes first", () => {
+      // TODO(iain): figure out deployemtn race condition to remove dummy test
+      // fixes bug in next test with deployment delay issue
+      expect(true).to.be.true;
+    });
+
     it("mints randomly", async () => {
+      console.log("starts minting randomly");
       const tx = await algoLiteInstance.mint(signerAddress);
+      console.log("on mint");
       const receipt = await tx.wait();
       const transfer = receipt.events?.find((x) => x.event === "Transfer");
       // @ts-ignore
       const tokenId = transfer?.args[2];
       console.log("minted token ", tokenId.toNumber());
+      console.log("ends minting randomly");
       expect(await algoLiteInstance.ownerOf(tokenId)).to.be.equal(
         signerAddress
       );
+    });
+    it("mints genesis to owner", async () => {
+      expect(await algoLiteInstance.balanceOf(signerAddress)).to.be.eq(1);
+      expect(await algoLiteInstance.ownerOf(0)).to.be.eq(signerAddress);
     });
     it("stops after mints are complete", async () => {
       for (let i = 0; i < 10; i++) {
@@ -50,7 +66,15 @@ describe("AlgoLite", () => {
 
       expect(
         algoLiteInstance.connect(signer1).mint(await signer1.getAddress())
-      ).to.be.revertedWith("Not approved");
+      ).to.be.revertedWith("not approved");
+      await algoLiteInstance.setIsApprovedMinter(
+        await signer1.getAddress(),
+        true
+      );
+      await algoLiteInstance.connect(signer1).mint(await signer1.getAddress());
+      expect(
+        await algoLiteInstance.balanceOf(await signer1.getAddress())
+      ).to.be.equal(1);
     });
   });
   describe("with a full set", () => {
@@ -58,7 +82,7 @@ describe("AlgoLite", () => {
       const signerAddress = await (await ethers.getSigners())[0].getAddress();
       const algoLiteFactory = (await ethers.getContractFactory(
         "AlgoLite"
-      )) as AlgoLiteFactory;
+      )) as AlgoLite__factory;
       const algoLiteInstance = await algoLiteFactory.deploy(
         "Algo-Lite Full",
         "ALIGHTFULL",

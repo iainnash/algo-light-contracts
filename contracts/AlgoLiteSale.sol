@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
 import "./IMintable.sol";
 
-
 /// @author Iain Nash @isiain
 /// @dev Minting Contract for Algo Lite Project by @jawn
 /// @custom:warning UNAUDITED: Use at own risk
@@ -37,19 +36,17 @@ contract AlgoLiteSale is Ownable, ReentrancyGuard {
         privateSaleToken = _privateSaleToken;
     }
 
+    modifier onlyMintableOwner() {
+        require(msg.sender == mintable.owner(), "only owner");
+        _;
+    }
+
     /// @dev Public purchase token, limited by number sold public, requires ETH value
     function purchase() public payable nonReentrant {
         require(numberSoldPublic < numberPublicSale, "No sale");
         require(msg.value >= PUBLIC_SALE_AMOUNT, "Too low");
         mintable.mint(msg.sender);
         numberSoldPublic += 1;
-    }
-
-    function withdrawEth() public {
-        (bool sent, ) = owner().call{value: address(this).balance, gas: 40_000}(
-            ""
-        );
-        require(sent, "Failed to send Ether");
     }
 
     /// @dev Returns sales info
@@ -92,16 +89,21 @@ contract AlgoLiteSale is Ownable, ReentrancyGuard {
         }
     }
 
-    /// @dev Withdraw tokens from mints based on your % ownership of the tokens from the sale
-    /// You need to be holding master fractional tokens to withdraw
-    function withdrawMasterTokens() public nonReentrant {
-        uint256 masterBalance = privateSaleToken.totalSupply();
-        uint256 vaultBalance = privateSaleToken.balanceOf(address(this));
-        uint256 senderBalance = privateSaleToken.balanceOf(msg.sender);
-        uint256 tokensOwedSender = ((vaultBalance * senderBalance) /
-            (masterBalance - vaultBalance));
-        require(tokensOwedSender > 0, "Sender tokens needed");
-        privateSaleToken.transfer(msg.sender, tokensOwedSender);
+    /// @dev Withdraw tokens from mints to be distributed proportionally to holders of the token.
+    function withdrawMasterTokens() public nonReentrant onlyMintableOwner {
+        privateSaleToken.transfer(
+            mintable.owner(),
+            privateSaleToken.balanceOf(address(this))
+        );
+    }
+
+    /// @dev Withdraw ETH from public minting
+    function withdrawEth() public onlyMintableOwner {
+        (bool sent, ) = mintable.owner().call{
+            value: address(this).balance,
+            gas: 100_000
+        }("");
+        require(sent, "Failed to send Ether");
     }
 
     /// @dev Set number of NFTs that can be purchased

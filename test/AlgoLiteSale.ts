@@ -5,11 +5,11 @@ import { ethers, deployments } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   AlgoLite,
-  AlgoLiteFactory,
+  AlgoLite__factory,
   AlgoLiteSale,
-  AlgoLiteSaleFactory,
+  AlgoLiteSale__factory,
   TestToken,
-  TestTokenFactory,
+  TestToken__factory,
 } from "../typechain";
 
 describe("AlgoLiteSale", () => {
@@ -28,23 +28,23 @@ describe("AlgoLiteSale", () => {
       signer = (await ethers.getSigners())[0];
       signerAddress = await signer.getAddress();
 
-      algoLiteInstance = AlgoLiteFactory.connect(AlgoLite.address, signer);
-      algoLiteSaleInstance = AlgoLiteSaleFactory.connect(
+      algoLiteInstance = AlgoLite__factory.connect(AlgoLite.address, signer);
+      algoLiteSaleInstance = AlgoLiteSale__factory.connect(
         AlgoLiteSale.address,
         signer
       );
-      testTokenInstance = TestTokenFactory.connect(TestToken.address, signer);
+      testTokenInstance = TestToken__factory.connect(TestToken.address, signer);
     });
 
     it("sells for ETH", async () => {
-      await algoLiteInstance.setApprovedMinters([algoLiteSaleInstance.address]);
+      await algoLiteInstance.setIsApprovedMinter(algoLiteSaleInstance.address, true);
       await algoLiteSaleInstance.setSaleNumbers(10, 10);
       await algoLiteSaleInstance.purchase({
         value: ethers.utils.parseEther("0.1"),
       });
     });
     it("sells for tokens", async () => {
-      await algoLiteInstance.setApprovedMinters([algoLiteSaleInstance.address]);
+      await algoLiteInstance.setIsApprovedMinter(algoLiteSaleInstance.address, true);
       await algoLiteSaleInstance.setSaleNumbers(10, 10);
       expect((await testTokenInstance.balanceOf(signerAddress)).gt("0")).to.be
         .true;
@@ -54,10 +54,10 @@ describe("AlgoLiteSale", () => {
       );
       await algoLiteSaleInstance.purchaseWithToken();
     });
-    it("allows user withdraw of sales tokens", async () => {
+    it("allows admin withdraw of sales tokens", async () => {
       const [_, signer1, signer2] = await ethers.getSigners();
 
-      await algoLiteInstance.setApprovedMinters([algoLiteSaleInstance.address]);
+      await algoLiteInstance.setIsApprovedMinter(algoLiteSaleInstance.address, true);
       await algoLiteSaleInstance.setSaleNumbers(10, 10);
       expect((await testTokenInstance.balanceOf(signerAddress)).gt("0")).to.be
         .true;
@@ -73,22 +73,21 @@ describe("AlgoLiteSale", () => {
         algoLiteSaleInstance.address,
         ethers.utils.parseEther("10000")
       );
+      await testTokenInstance.connect(signer2).approve(
+        algoLiteSaleInstance.address,
+        ethers.utils.parseEther("10000")
+      );
       await algoLiteSaleInstance.purchaseWithToken();
-      const startAmount = await testTokenInstance.balanceOf(
-        await signer1.getAddress()
-      );
+      await algoLiteSaleInstance.purchaseWithToken();
+      await algoLiteSaleInstance.connect(signer2).purchaseWithToken();
+      const startAmount = await testTokenInstance.balanceOf(signerAddress);
 
-      await algoLiteSaleInstance.connect(signer1).withdrawMasterTokens();
-      const endAmount = await testTokenInstance.balanceOf(
-        await signer1.getAddress()
-      );
-      console.log({
-        startAmount: ethers.utils.formatEther(startAmount),
-        endAmount: ethers.utils.formatEther(endAmount),
-      });
-      expect(endAmount.sub(startAmount).toString()).to.be.equal(
-        "400400400400400400"
-      );
+      await algoLiteSaleInstance.connect(signer).withdrawMasterTokens();
+      expect(
+        ethers.utils.formatEther(
+          (await testTokenInstance.balanceOf(signerAddress)).sub(startAmount)
+        )
+      ).to.equal("3.0");
     });
   });
 });
