@@ -27,15 +27,25 @@ describe("AlgoLite", () => {
       expect(true).to.be.true;
     });
 
+    it("returns interfaces correctly", async () => {
+      expect(await algoLiteInstance.supportsInterface("0x2a55205a")).to.be.true;
+      expect(await algoLiteInstance.supportsInterface("0x01ffc9a7")).to.be.true;
+      expect(await algoLiteInstance.supportsInterface("0x80ac58cd")).to.be.true;
+    });
+
     it("specifies correct base URL", async () => {
-      await expect(algoLiteInstance.tokenURI(1)).to.be.revertedWith('NO TOKEN');
+      await expect(algoLiteInstance.tokenURI(1)).to.be.revertedWith("NO TOKEN");
       await algoLiteInstance.mint(signerAddress);
       const uri = await algoLiteInstance.tokenURI(1);
-      expect(uri).to.be.equal("https://t4ot4q4obxpxg54zjzuzvjuw6vbcs7zgo2qpjhf5ui5xijjemmdq.arweave.net/nx0-Q44N33N3mU5pmqaW9UIpfyZ2oPScvaI7dCUkYwc/metadata/1.json");
+      expect(uri).to.be.equal(
+        "https://t4ot4q4obxpxg54zjzuzvjuw6vbcs7zgo2qpjhf5ui5xijjemmdq.arweave.net/nx0-Q44N33N3mU5pmqaW9UIpfyZ2oPScvaI7dCUkYwc/metadata/1.json"
+      );
     });
-    it('sets initial uri correctly', async () => {
+    it("sets initial uri correctly", async () => {
       const uri = await algoLiteInstance.tokenURI(0);
-      expect(uri).to.be.equal("https://t4ot4q4obxpxg54zjzuzvjuw6vbcs7zgo2qpjhf5ui5xijjemmdq.arweave.net/nx0-Q44N33N3mU5pmqaW9UIpfyZ2oPScvaI7dCUkYwc/metadata/0.json");
+      expect(uri).to.be.equal(
+        "https://t4ot4q4obxpxg54zjzuzvjuw6vbcs7zgo2qpjhf5ui5xijjemmdq.arweave.net/nx0-Q44N33N3mU5pmqaW9UIpfyZ2oPScvaI7dCUkYwc/metadata/0.json"
+      );
     });
 
     it("mints randomly", async () => {

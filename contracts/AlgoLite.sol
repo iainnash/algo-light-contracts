@@ -1,5 +1,42 @@
 // SPDX-License-Identifier: GPL-3.0
 
+/**
+                                                                                                                                                      
+                                                                                       
+                                
+                 ..   8"=,,88,   _.
+                  8""=""8'  "88a88'
+             .. .;88m a8   ,8"" "8
+              "8"'  "88"  A"     8;
+                "8,  "8   8  'u'   "8,
+                 "8   8,  8,       "8
+                  8,  "8, "8,    ___8,
+                  "8,  "8, "8mm""""""8m.
+                   "8,algo.8"'   ,mm"
+                   ,8"  _8"  .lite"
+                  ,88P"""""I88con8
+                  "'         "much0"
+                              "a8,   
+                               "m8   
+                                 "o8_
+                     ,by:jawn.m""i,,r8""  ,johnny,'.
+                    m""    . "8.8 I8  ,8"   .  "88
+                   i8  . '  ,mi""8I8 ,8 . '  ,8" 88
+                   88.' ,mm""    "iain"m,,mm'"    8
+                   "8_m""         "I8   ""'
+                    "8             I8
+                                   I8_ 
+                                   I8""
+                                   I8
+                                  _I8
+                                 ""I8
+                                   I8     ALGO LITE
+
+
+
+
+*/
+
 pragma solidity 0.8.6;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
