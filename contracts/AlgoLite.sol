@@ -26,21 +26,25 @@ contract AlgoLite is ERC721, IERC2981, Ownable, IMintable {
     /// @param symbol Symbol of NFT contract
     /// @param _metadataBase Base URL of metadata
     /// @param _maxAvailableId Max number that can be minted beyond 0
+    /// @param multisigOwner New owner after deploying
     /// @dev Sets up the serial contract with a name, symbol, and an initial allowed creator.
     /// @dev Mints the genesis token to the deployer.
     constructor(
         string memory name,
         string memory symbol,
         string memory _metadataBase,
-        uint16 _maxAvailableId
+        uint16 _maxAvailableId,
+        address multisigOwner
     ) ERC721(name, symbol) {
         metadataBase = _metadataBase;
         // Create array of avilable ids (not initialized as a gas optimization)
         availableIds = new uint16[](_maxAvailableId);
         // Init entropy
         _updateEntropy();
+        // Set new owner
+        transferOwnership(multisigOwner);
         // Mint genesis token
-        _mint(msg.sender, 0);
+        _mint(multisigOwner, 0);
     }
 
     /// @dev Updates entropy value hash
@@ -157,6 +161,6 @@ contract AlgoLite is ERC721, IERC2981, Ownable, IMintable {
         return
             type(IMintable).interfaceId == interfaceId ||
             type(IERC2981).interfaceId == interfaceId ||
-            ERC721.supportsInterface(interfaceId);
+            super.supportsInterface(interfaceId);
     }
 }

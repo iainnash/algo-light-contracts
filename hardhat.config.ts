@@ -3,6 +3,7 @@ import "hardhat-gas-reporter";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-deploy";
 import "@nomiclabs/hardhat-etherscan";
+import "solidity-coverage";
 import { HardhatUserConfig } from "hardhat/config";
 import networks from "./networks";
 

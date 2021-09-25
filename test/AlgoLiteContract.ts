@@ -27,6 +27,17 @@ describe("AlgoLite", () => {
       expect(true).to.be.true;
     });
 
+    it("specifies correct base URL", async () => {
+      await expect(algoLiteInstance.tokenURI(1)).to.be.revertedWith('NO TOKEN');
+      await algoLiteInstance.mint(signerAddress);
+      const uri = await algoLiteInstance.tokenURI(1);
+      expect(uri).to.be.equal("https://t4ot4q4obxpxg54zjzuzvjuw6vbcs7zgo2qpjhf5ui5xijjemmdq.arweave.net/nx0-Q44N33N3mU5pmqaW9UIpfyZ2oPScvaI7dCUkYwc/metadata/1.json");
+    });
+    it('sets initial uri correctly', async () => {
+      const uri = await algoLiteInstance.tokenURI(0);
+      expect(uri).to.be.equal("https://t4ot4q4obxpxg54zjzuzvjuw6vbcs7zgo2qpjhf5ui5xijjemmdq.arweave.net/nx0-Q44N33N3mU5pmqaW9UIpfyZ2oPScvaI7dCUkYwc/metadata/0.json");
+    });
+
     it("mints randomly", async () => {
       console.log("starts minting randomly");
       const tx = await algoLiteInstance.mint(signerAddress);
@@ -87,7 +98,8 @@ describe("AlgoLite", () => {
         "Algo-Lite Full",
         "ALIGHTFULL",
         "https://bar.com/co",
-        2400
+        2400,
+        signerAddress
       );
       for (let i = 0; i < 2400; i++) {
         const tx = await algoLiteInstance.mint(signerAddress);

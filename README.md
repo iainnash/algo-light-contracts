@@ -1,4 +1,4 @@
-## AlgoLight Contract
+## Algo-Lite Contract
 
 1. Mints randomly
 2. On-chain royalties

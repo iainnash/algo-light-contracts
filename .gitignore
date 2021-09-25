@@ -5,3 +5,4 @@ cache
 ./networks.private.json
 .DS_Store
 typechain/
+coverage/
