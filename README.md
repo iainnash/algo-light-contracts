@@ -15,10 +15,10 @@ Artist minting contract for Algo Lite by [@jawn](https://twitter.com/jawn).
 
 #### Environment variables for config:
 
-DEV_MNEMONIC: Mnemonic for devel
-RINKEBY_RPC: RPC Url for ethereum rinkeby network
-PROD_PRIVATE_KEY: Private key for production (mainnet eth)
-MAINNET_RPC: RPC Url for ethereum mainnet network
+- DEV_MNEMONIC: Mnemonic for devel
+- RINKEBY_RPC: RPC Url for ethereum rinkeby network
+- PROD_PRIVATE_KEY: Private key for production (mainnet eth)
+- MAINNET_RPC: RPC Url for ethereum mainnet network
 
 Configured networks:
 - mainnet
