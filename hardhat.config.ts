@@ -6,6 +6,9 @@ import "@nomiclabs/hardhat-etherscan";
 import "solidity-coverage";
 import { HardhatUserConfig } from "hardhat/config";
 import networks from "./networks";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 /**
  * @type import('hardhat/config').HardhatUserConfig

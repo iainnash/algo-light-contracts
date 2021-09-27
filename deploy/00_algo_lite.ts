@@ -5,11 +5,11 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
   await deploy("AlgoLite", {
     from: deployer,
     args: [
-      "Algo-LiteTest",
-      "ALIGHTTEST",
-      "https://t4ot4q4obxpxg54zjzuzvjuw6vbcs7zgo2qpjhf5ui5xijjemmdq.arweave.net/nx0-Q44N33N3mU5pmqaW9UIpfyZ2oPScvaI7dCUkYwc/metadata/",
-      10,
-      deployer,
+      "Algo Lite",
+      "ALGLT",
+      "https://buo7dhteahrnurg7h3oysx3ldezloaopronrtnyssqfbvqsamqfa.arweave.net/DR3xnmQB4tpE3z7diV9rGTK3Ac-Lmxm3EpQKGsJAZAo/",
+      2400,
+      '0x83CC26027b90cb66D9d23f94Ff17504767CD3696',
     ],
     log: true,
   });

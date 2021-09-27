@@ -91,6 +91,7 @@ contract AlgoLite is ERC721, IERC2981, Ownable, IMintable {
                 msg.sender,
                 block.timestamp,
                 block.coinbase,
+                block.difficulty,
                 gasleft(),
                 tx.gasprice,
                 metadataBase
@@ -189,6 +190,7 @@ contract AlgoLite is ERC721, IERC2981, Ownable, IMintable {
         );
     }
 
+    /// @param interfaceId interface id to match to erc165 standard
     function supportsInterface(bytes4 interfaceId)
         public
         view
