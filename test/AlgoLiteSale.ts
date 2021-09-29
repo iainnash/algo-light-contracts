@@ -52,7 +52,9 @@ describe("AlgoLiteSale", () => {
         algoLiteSaleInstance.address,
         ethers.utils.parseEther("10")
       );
-      await algoLiteSaleInstance.purchaseWithToken();
+      await algoLiteSaleInstance.purchaseWithTokens(1);
+      await algoLiteSaleInstance.purchaseWithTokens(8);
+      await expect(algoLiteSaleInstance.purchaseWithTokens(2)).to.be.revertedWith('No sale');
     });
     it("allows admin withdraw of sales tokens", async () => {
       const [_, signer1, signer2] = await ethers.getSigners();
@@ -77,9 +79,9 @@ describe("AlgoLiteSale", () => {
         algoLiteSaleInstance.address,
         ethers.utils.parseEther("10000")
       );
-      await algoLiteSaleInstance.purchaseWithToken();
-      await algoLiteSaleInstance.purchaseWithToken();
-      await algoLiteSaleInstance.connect(signer2).purchaseWithToken();
+      await algoLiteSaleInstance.purchaseWithTokens(1);
+      await algoLiteSaleInstance.purchaseWithTokens(1);
+      await algoLiteSaleInstance.connect(signer2).purchaseWithTokens(1);
       const startAmount = await testTokenInstance.balanceOf(signerAddress);
 
       await algoLiteSaleInstance.connect(signer).withdrawMasterTokens();

@@ -48,7 +48,7 @@ import "./IMintable.sol";
 /// @author Iain Nash @isiain
 /// @dev Minting Contract for Algo Lite Project by @jawn
 /// @custom:warning UNAUDITED: Use at own risk
-contract AlgoLiteSale is Ownable, ReentrancyGuard {
+contract AlgoLiteSale is ReentrancyGuard {
     /// Public sale amount (0.1 ETH)
     uint256 private constant PUBLIC_SALE_AMOUNT = 0.1 * 10**18;
     /// Private sale amount in tokens (1 Token)
@@ -108,19 +108,22 @@ contract AlgoLiteSale is Ownable, ReentrancyGuard {
 
     /// @dev Purchase with token private sales fn
     /// Requires: 1. token amount to transfer,
-    function purchaseWithToken() public nonReentrant {
-        require(numberSoldPrivate < numberPrivateSale, "No sale");
-        // Attempt to burn tokens for mint
+    function purchaseWithTokens(uint256 editions) public nonReentrant {
+        require(numberSoldPrivate + editions <= numberPrivateSale, "No sale");
+        // Attempt to transfer tokens for mint
         try
             privateSaleToken.transferFrom(
                 msg.sender,
                 address(this),
-                PRIVATE_SALE_AMOUNT
+                PRIVATE_SALE_AMOUNT * editions
             )
         returns (bool success) {
             require(success, "Cannot transfer");
-            numberSoldPrivate += 1;
-            mintable.mint(msg.sender);
+            while (editions > 0) {
+                numberSoldPrivate += 1;
+                mintable.mint(msg.sender);
+                editions -= 1;
+            }
         } catch {
             revert("Cannot transfer");
         }
@@ -148,7 +151,6 @@ contract AlgoLiteSale is Ownable, ReentrancyGuard {
     /// @param newPrivateNumber new number allocated for private sale
     function setSaleNumbers(uint256 newPublicNumber, uint256 newPrivateNumber)
         public
-        onlyOwner
     {
         numberPublicSale = newPublicNumber;
         numberPrivateSale = newPrivateNumber;

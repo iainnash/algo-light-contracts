@@ -22,35 +22,23 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface AlgoLiteSaleInterface extends ethers.utils.Interface {
   functions: {
-    "owner()": FunctionFragment;
     "purchase()": FunctionFragment;
-    "purchaseWithToken()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
+    "purchaseWithTokens(uint256)": FunctionFragment;
     "saleInfo()": FunctionFragment;
     "setSaleNumbers(uint256,uint256)": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
     "withdrawEth()": FunctionFragment;
     "withdrawMasterTokens()": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "purchase", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "purchaseWithToken",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
+    functionFragment: "purchaseWithTokens",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "saleInfo", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "setSaleNumbers",
     values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawEth",
@@ -61,14 +49,9 @@ interface AlgoLiteSaleInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
 
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "purchase", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "purchaseWithToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
+    functionFragment: "purchaseWithTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "saleInfo", data: BytesLike): Result;
@@ -77,10 +60,6 @@ interface AlgoLiteSaleInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "withdrawEth",
     data: BytesLike
   ): Result;
@@ -89,16 +68,8 @@ interface AlgoLiteSaleInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
 
-  events: {
-    "OwnershipTransferred(address,address)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  events: {};
 }
-
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string] & { previousOwner: string; newOwner: string }
->;
 
 export class AlgoLiteSale extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -144,17 +115,12 @@ export class AlgoLiteSale extends BaseContract {
   interface: AlgoLiteSaleInterface;
 
   functions: {
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
     purchase(
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    purchaseWithToken(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    renounceOwnership(
+    purchaseWithTokens(
+      editions: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -168,11 +134,6 @@ export class AlgoLiteSale extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     withdrawEth(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -182,17 +143,12 @@ export class AlgoLiteSale extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  owner(overrides?: CallOverrides): Promise<string>;
-
   purchase(
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  purchaseWithToken(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  renounceOwnership(
+  purchaseWithTokens(
+    editions: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -206,11 +162,6 @@ export class AlgoLiteSale extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  transferOwnership(
-    newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   withdrawEth(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -220,13 +171,12 @@ export class AlgoLiteSale extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    owner(overrides?: CallOverrides): Promise<string>;
-
     purchase(overrides?: CallOverrides): Promise<void>;
 
-    purchaseWithToken(overrides?: CallOverrides): Promise<void>;
-
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+    purchaseWithTokens(
+      editions: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     saleInfo(
       overrides?: CallOverrides
@@ -238,46 +188,20 @@ export class AlgoLiteSale extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     withdrawEth(overrides?: CallOverrides): Promise<void>;
 
     withdrawMasterTokens(overrides?: CallOverrides): Promise<void>;
   };
 
-  filters: {
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
-    >;
-
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
-    >;
-  };
+  filters: {};
 
   estimateGas: {
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
     purchase(
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    purchaseWithToken(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    renounceOwnership(
+    purchaseWithTokens(
+      editions: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -286,11 +210,6 @@ export class AlgoLiteSale extends BaseContract {
     setSaleNumbers(
       newPublicNumber: BigNumberish,
       newPrivateNumber: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -304,17 +223,12 @@ export class AlgoLiteSale extends BaseContract {
   };
 
   populateTransaction: {
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     purchase(
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    purchaseWithToken(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    renounceOwnership(
+    purchaseWithTokens(
+      editions: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -323,11 +237,6 @@ export class AlgoLiteSale extends BaseContract {
     setSaleNumbers(
       newPublicNumber: BigNumberish,
       newPrivateNumber: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
