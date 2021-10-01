@@ -45,6 +45,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
 import "./IMintable.sol";
 
+import "hardhat/console.sol";
+
 /// @author Iain Nash @isiain
 /// @dev Minting Contract for Algo Lite Project by @jawn
 /// @custom:warning UNAUDITED: Use at own risk
@@ -84,6 +86,10 @@ contract AlgoLiteSale is ReentrancyGuard {
         require(msg.value >= PUBLIC_SALE_AMOUNT, "Too low");
         mintable.mint(msg.sender);
         numberSoldPublic += 1;
+        console.log("has");
+        console.log(msg.value);
+        console.log("bal");
+        console.log(address(this).balance);
     }
 
     /// @dev Returns sales info

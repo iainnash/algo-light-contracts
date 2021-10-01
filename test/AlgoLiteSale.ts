@@ -11,6 +11,7 @@ import {
   TestToken,
   TestToken__factory,
 } from "../typechain";
+import { formatEther, parseEther } from "@ethersproject/units";
 
 describe("AlgoLiteSale", () => {
   describe("with a serial", () => {
@@ -78,6 +79,37 @@ describe("AlgoLiteSale", () => {
         endBalance: ethers.utils.formatEther(endBalance),
       });
     });
+    it("allows purchase and withdraw of eth", async () => {
+      const [_, signer1] = await ethers.getSigners();
+      await algoLiteInstance.setIsApprovedMinter(
+        algoLiteSaleInstance.address,
+        true
+      );
+      await algoLiteSaleInstance.setSaleNumbers(10, 10);
+
+      expect(
+        await ethers.provider.getBalance(algoLiteSaleInstance.address)
+      ).to.be.equal(0);
+      await algoLiteSaleInstance
+        .connect(signer1)
+        .purchase({ value: ethers.utils.parseEther("0.1") });
+      await algoLiteSaleInstance
+        .connect(signer)
+        .purchase({ value: ethers.utils.parseEther("0.1") });
+      expect(
+        await algoLiteInstance.balanceOf(await signer1.getAddress())
+      ).to.be.equal(1);
+      const originalBalance = await signer.getBalance();
+      await algoLiteSaleInstance.withdrawEth();
+      expect(
+        parseFloat(
+          formatEther((await signer.getBalance()).sub(originalBalance))
+        )
+      ).to.be.approximately(0.2, 0.01);
+      expect(
+        await ethers.provider.getBalance(algoLiteSaleInstance.address)
+      ).to.be.equal(0);
+    });
     it("sends tokens after purchase to owner (multisig)", async () => {
       const [_, signer1, signer2] = await ethers.getSigners();
 
@@ -108,8 +140,7 @@ describe("AlgoLiteSale", () => {
       expect(startAmount).to.be.equal(0);
       await algoLiteSaleInstance.connect(signer1).purchaseWithTokens(2);
       expect(
-        await algoLiteInstance
-          .balanceOf(await signer1.getAddress())
+        await algoLiteInstance.balanceOf(await signer1.getAddress())
       ).to.be.equal(2);
       expect(
         await algoLiteInstance.balanceOf(await signer2.getAddress())
