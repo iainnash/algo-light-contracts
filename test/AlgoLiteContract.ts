@@ -11,20 +11,16 @@ describe("AlgoLite", () => {
     let signerAddress: string;
     let algoLiteInstance: AlgoLite;
     beforeEach(async () => {
-      const { AlgoLite } = await deployments.fixture(["AlgoLite"]);
-      algoLiteInstance = await AlgoLite__factory.connect(
-        AlgoLite.address,
-        signer
-      );
-
       signer = (await ethers.getSigners())[0];
       signerAddress = await signer.getAddress();
-    });
 
-    it("goes first", () => {
-      // TODO(iain): figure out deployemtn race condition to remove dummy test
-      // fixes bug in next test with deployment delay issue
-      expect(true).to.be.true;
+      algoLiteInstance = await new AlgoLite__factory(signer).deploy(
+        "Algo Lite",
+        "ALGLT",
+        "https://buo7dhteahrnurg7h3oysx3ldezloaopronrtnyssqfbvqsamqfa.arweave.net/DR3xnmQB4tpE3z7diV9rGTK3Ac-Lmxm3EpQKGsJAZAo/",
+        10,
+        signerAddress
+      );
     });
 
     it("returns interfaces correctly", async () => {

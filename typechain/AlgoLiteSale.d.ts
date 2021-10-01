@@ -27,7 +27,6 @@ interface AlgoLiteSaleInterface extends ethers.utils.Interface {
     "saleInfo()": FunctionFragment;
     "setSaleNumbers(uint256,uint256)": FunctionFragment;
     "withdrawEth()": FunctionFragment;
-    "withdrawMasterTokens()": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "purchase", values?: undefined): string;
@@ -44,10 +43,6 @@ interface AlgoLiteSaleInterface extends ethers.utils.Interface {
     functionFragment: "withdrawEth",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawMasterTokens",
-    values?: undefined
-  ): string;
 
   decodeFunctionResult(functionFragment: "purchase", data: BytesLike): Result;
   decodeFunctionResult(
@@ -61,10 +56,6 @@ interface AlgoLiteSaleInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawEth",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawMasterTokens",
     data: BytesLike
   ): Result;
 
@@ -137,10 +128,6 @@ export class AlgoLiteSale extends BaseContract {
     withdrawEth(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    withdrawMasterTokens(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
   };
 
   purchase(
@@ -166,10 +153,6 @@ export class AlgoLiteSale extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  withdrawMasterTokens(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   callStatic: {
     purchase(overrides?: CallOverrides): Promise<void>;
 
@@ -189,8 +172,6 @@ export class AlgoLiteSale extends BaseContract {
     ): Promise<void>;
 
     withdrawEth(overrides?: CallOverrides): Promise<void>;
-
-    withdrawMasterTokens(overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {};
@@ -216,10 +197,6 @@ export class AlgoLiteSale extends BaseContract {
     withdrawEth(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    withdrawMasterTokens(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -241,10 +218,6 @@ export class AlgoLiteSale extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     withdrawEth(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawMasterTokens(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

@@ -29,7 +29,7 @@ if (process.env.DEV_MNEMONIC) {
       },
     };
   }
-  if (process.env.MAINNET_RPC) {
+  if (process.env.MAINNET_RPC && process.env.PROD_PRIVATE_KEY) {
     networks.mainnet = {
       chainId: 1,
       url: process.env.MAINNET_RPC,

@@ -32,6 +32,10 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     deployer: 0,
     purchaser: 1,
+    fractionalToken: {
+      1: '0xfd8D7dBECd5c083dDe2b828F96be5d16D1188235',
+      4: '0xfd8D7dBECd5c083dDe2b828F96be5d16D1188235'
+    }
   },
   solidity: {
     version: "0.8.6",

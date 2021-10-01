@@ -108,33 +108,27 @@ contract AlgoLiteSale is ReentrancyGuard {
 
     /// @dev Purchase with token private sales fn
     /// Requires: 1. token amount to transfer,
+    /// @param editions number of editions to purchase (needs to have same tokens)
     function purchaseWithTokens(uint256 editions) public nonReentrant {
         require(numberSoldPrivate + editions <= numberPrivateSale, "No sale");
+        require(editions > 0, "Min 1");
         // Attempt to transfer tokens for mint
         try
             privateSaleToken.transferFrom(
                 msg.sender,
-                address(this),
+                mintable.owner(),
                 PRIVATE_SALE_AMOUNT * editions
             )
         returns (bool success) {
-            require(success, "Cannot transfer");
+            require(success, "ERR transfer");
             while (editions > 0) {
                 numberSoldPrivate += 1;
                 mintable.mint(msg.sender);
                 editions -= 1;
             }
         } catch {
-            revert("Cannot transfer");
+            revert("ERR transfer");
         }
-    }
-
-    /// @dev Withdraw tokens from mints to be distributed proportionally to holders of the token.
-    function withdrawMasterTokens() public nonReentrant onlyMintableOwner {
-        privateSaleToken.transfer(
-            mintable.owner(),
-            privateSaleToken.balanceOf(address(this))
-        );
     }
 
     /// @dev Withdraw ETH from public minting

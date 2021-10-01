@@ -20,74 +20,108 @@ describe("AlgoLiteSale", () => {
     let algoLiteSaleInstance: AlgoLiteSale;
     let testTokenInstance: TestToken;
     beforeEach(async () => {
-      const { AlgoLite, AlgoLiteSale, TestToken } = await deployments.fixture([
-        "TestToken",
+      const { AlgoLite, TestToken } = await deployments.fixture([
         "AlgoLite",
-        "AlgoLiteSale",
+        "TestToken",
       ]);
       signer = (await ethers.getSigners())[0];
       signerAddress = await signer.getAddress();
 
       algoLiteInstance = AlgoLite__factory.connect(AlgoLite.address, signer);
-      algoLiteSaleInstance = AlgoLiteSale__factory.connect(
-        AlgoLiteSale.address,
-        signer
+      algoLiteSaleInstance = await new AlgoLiteSale__factory(signer).deploy(
+        AlgoLite.address,
+        TestToken.address
       );
       testTokenInstance = TestToken__factory.connect(TestToken.address, signer);
     });
 
     it("sells for ETH", async () => {
-      await algoLiteInstance.setIsApprovedMinter(algoLiteSaleInstance.address, true);
+      await algoLiteInstance.setIsApprovedMinter(
+        algoLiteSaleInstance.address,
+        true
+      );
       await algoLiteSaleInstance.setSaleNumbers(10, 10);
       await algoLiteSaleInstance.purchase({
         value: ethers.utils.parseEther("0.1"),
       });
     });
     it("sells for tokens", async () => {
-      await algoLiteInstance.setIsApprovedMinter(algoLiteSaleInstance.address, true);
+      const [_, signer1] = await ethers.getSigners();
+      await algoLiteInstance.setIsApprovedMinter(
+        algoLiteSaleInstance.address,
+        true
+      );
       await algoLiteSaleInstance.setSaleNumbers(10, 10);
-      expect((await testTokenInstance.balanceOf(signerAddress)).gt("0")).to.be
-        .true;
-      await testTokenInstance.approve(
-        algoLiteSaleInstance.address,
-        ethers.utils.parseEther("10")
-      );
-      await algoLiteSaleInstance.purchaseWithTokens(1);
-      await algoLiteSaleInstance.purchaseWithTokens(8);
-      await expect(algoLiteSaleInstance.purchaseWithTokens(2)).to.be.revertedWith('No sale');
-    });
-    it("allows admin withdraw of sales tokens", async () => {
-      const [_, signer1, signer2] = await ethers.getSigners();
-
-      await algoLiteInstance.setIsApprovedMinter(algoLiteSaleInstance.address, true);
-      await algoLiteSaleInstance.setSaleNumbers(10, 10);
-      expect((await testTokenInstance.balanceOf(signerAddress)).gt("0")).to.be
-        .true;
-      await testTokenInstance.transfer(
-        await signer1.getAddress(),
-        ethers.utils.parseEther("400")
-      );
-      await testTokenInstance.transfer(
-        await signer2.getAddress(),
-        ethers.utils.parseEther("400")
-      );
-      await testTokenInstance.approve(
-        algoLiteSaleInstance.address,
-        ethers.utils.parseEther("10000")
-      );
-      await testTokenInstance.connect(signer2).approve(
-        algoLiteSaleInstance.address,
-        ethers.utils.parseEther("10000")
-      );
-      await algoLiteSaleInstance.purchaseWithTokens(1);
-      await algoLiteSaleInstance.purchaseWithTokens(1);
-      await algoLiteSaleInstance.connect(signer2).purchaseWithTokens(1);
-      const startAmount = await testTokenInstance.balanceOf(signerAddress);
-
-      await algoLiteSaleInstance.connect(signer).withdrawMasterTokens();
+      const initialBalance = await testTokenInstance.balanceOf(signerAddress);
+      expect(initialBalance).to.be.equal("0");
+      await testTokenInstance
+        .connect(signer1)
+        .approve(algoLiteSaleInstance.address, ethers.utils.parseEther("10"));
+      await algoLiteSaleInstance.connect(signer1).purchaseWithTokens(1);
       expect(
         ethers.utils.formatEther(
-          (await testTokenInstance.balanceOf(signerAddress)).sub(startAmount)
+          await testTokenInstance.balanceOf(signerAddress)
+        )
+      ).to.be.equal("1.0");
+      await algoLiteSaleInstance.connect(signer1).purchaseWithTokens(8);
+      expect(
+        ethers.utils.formatEther(
+          await testTokenInstance.balanceOf(signerAddress)
+        )
+      ).to.be.equal("9.0");
+      await expect(
+        algoLiteSaleInstance.purchaseWithTokens(2)
+      ).to.be.revertedWith("No sale");
+      const endBalance = await algoLiteInstance.balanceOf(signerAddress);
+      console.log({
+        initialBalance: ethers.utils.formatEther(initialBalance),
+        endBalance: ethers.utils.formatEther(endBalance),
+      });
+    });
+    it("sends tokens after purchase to owner (multisig)", async () => {
+      const [_, signer1, signer2] = await ethers.getSigners();
+
+      await algoLiteInstance.setIsApprovedMinter(
+        algoLiteSaleInstance.address,
+        true
+      );
+      await algoLiteSaleInstance.setSaleNumbers(10, 10);
+      expect((await testTokenInstance.balanceOf(signerAddress)).eq("0")).to.be
+        .true;
+      await testTokenInstance
+        .connect(signer1)
+        .transfer(await signer2.getAddress(), ethers.utils.parseEther("400"));
+      await testTokenInstance
+        .connect(signer1)
+        .approve(
+          algoLiteSaleInstance.address,
+          ethers.utils.parseEther("10000")
+        );
+      await testTokenInstance
+        .connect(signer2)
+        .approve(
+          algoLiteSaleInstance.address,
+          ethers.utils.parseEther("10000")
+        );
+
+      const startAmount = await testTokenInstance.balanceOf(signerAddress);
+      expect(startAmount).to.be.equal(0);
+      await algoLiteSaleInstance.connect(signer1).purchaseWithTokens(2);
+      expect(
+        await algoLiteInstance
+          .balanceOf(await signer1.getAddress())
+      ).to.be.equal(2);
+      expect(
+        await algoLiteInstance.balanceOf(await signer2.getAddress())
+      ).to.be.equal(0);
+      await algoLiteSaleInstance.connect(signer2).purchaseWithTokens(1);
+      expect(
+        await algoLiteInstance.balanceOf(await signer2.getAddress())
+      ).to.be.equal(1);
+
+      expect(
+        ethers.utils.formatEther(
+          await testTokenInstance.balanceOf(signerAddress)
         )
       ).to.equal("3.0");
     });

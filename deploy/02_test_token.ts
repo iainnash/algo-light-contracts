@@ -1,11 +1,10 @@
 module.exports = async ({ getNamedAccounts, deployments }: any) => {
   const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const { purchaser } = await getNamedAccounts();
 
   await deploy("TestToken", {
-    from: deployer,
-    args: [
-    ],
+    from: purchaser,
+    args: [],
     log: true,
   });
 };
