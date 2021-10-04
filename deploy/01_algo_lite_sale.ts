@@ -1,4 +1,4 @@
-module.exports = async ({ getNamedAccounts, deployments }: any) => {
+module.exports = async ({ getNamedAccounts, deployments, network }: any) => {
   const { deploy } = deployments;
   const { deployer, fractionalToken } = await getNamedAccounts();
 
@@ -8,10 +8,14 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
     from: deployer,
     args: [
       deployedAddress,
-      fractionalToken,
+      network.name === "hardhat" || network.name === "rinkeby"
+        ? (
+            await deployments.get("TestToken")
+          ).address
+        : fractionalToken,
     ],
     log: true,
   });
 };
 module.exports.tags = ["AlgoLiteSale"];
-module.exports.dependencies = ["AlgoLite"];
+module.exports.dependencies = ["AlgoLite", "TestToken"];

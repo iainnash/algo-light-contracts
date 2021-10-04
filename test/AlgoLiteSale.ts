@@ -46,6 +46,18 @@ describe("AlgoLiteSale", () => {
         value: ethers.utils.parseEther("0.1"),
       });
     });
+
+    it("allows only owner to update sale numbers", async () => {
+      const [_, s1] = await ethers.getSigners();
+      await expect(
+        algoLiteSaleInstance.connect(s1).setSaleNumbers(10, 10)
+      ).to.be.revertedWith("only owner");
+      await algoLiteSaleInstance.setSaleNumbers(10, 10);
+      const salesData = await algoLiteSaleInstance.saleInfo();
+      expect(salesData[0].toNumber()).to.be.equal(10);
+      expect(salesData[2].toNumber()).to.be.equal(10);
+    });
+
     it("sells for tokens", async () => {
       const [_, signer1] = await ethers.getSigners();
       await algoLiteInstance.setIsApprovedMinter(

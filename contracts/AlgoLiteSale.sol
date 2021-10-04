@@ -144,7 +144,7 @@ contract AlgoLiteSale is ReentrancyGuard {
     /// @param newPublicNumber new number allowed for public sale
     /// @param newPrivateNumber new number allocated for private sale
     function setSaleNumbers(uint256 newPublicNumber, uint256 newPrivateNumber)
-        public
+        public onlyMintableOwner
     {
         numberPublicSale = newPublicNumber;
         numberPrivateSale = newPrivateNumber;
